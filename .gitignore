@@ -1,0 +1,7 @@
+.env
+a.py
+find_model.py
+export_secrets.py
+credentials.json
+token.pickle
+*.db
