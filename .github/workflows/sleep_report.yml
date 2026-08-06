@@ -1,0 +1,39 @@
+name: Automated Sleep Report Pipeline
+
+on:
+  schedule:
+    # 한국 시간 매일 오전 8시 30분 = UTC 매일 밤 23시 30분
+    - cron: '30 23 * * *'
+  workflow_dispatch: # 깃허브 웹에서 수동으로 테스트 실행할 수 있는 버튼 활성화
+
+jobs:
+  run-sleep-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 환경 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 필수 라이브러리 설치
+        run: |
+          pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-api-python-client requests python-dotenv google-genai
+
+      - name: Base64 Secrets를 실제 인증 파일로 복원
+        run: |
+          echo "${{ secrets.CREDENTIALS_JSON_BASE64 }}" | base64 --decode > credentials.json
+          echo "${{ secrets.TOKEN_PICKLE_BASE64 }}" | base64 --decode > token.pickle
+
+      - name: 수면 분석 스크립트 실행
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MAIL_FROM_ADDRESS: ${{ secrets.MAIL_FROM_ADDRESS }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: |
+          python mainSleep.py
