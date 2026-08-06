@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: 저장소 코드 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2  # 또는 최신 버전 태그 사용
 
       - name: Python 환경 설정
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.4.0  # 최신 버전으로 명시
         with:
           python-version: '3.11'
 
