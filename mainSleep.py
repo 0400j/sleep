@@ -5,7 +5,8 @@ import sqlite3
 import requests
 import json
 import smtplib
-from datetime import datetime, timedelta
+import re
+from datetime import datetime, timezone, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -13,6 +14,9 @@ from dotenv import load_dotenv
 from google import genai
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+
+# 💡 한국 시간대(KST = UTC+9) 고정 설정 (UTC 시간 왜곡 완전 해결)
+KST = timezone(timedelta(hours=9))
 
 # 1. 환경변수 로드
 load_dotenv()
@@ -41,11 +45,11 @@ def set_cache(date_str):
     conn.commit()
 
 def lg(msg):
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    now = datetime.now(KST).strftime('%Y-%m-%d %H:%M:%S')
     print(f"[{now}] ⚡ {msg}")
 
 # 3. Google Fit API 연동 및 수면 데이터 수집 로직
-SCOPES = ['https://www.googleapis.com/auth/fitness.sleep.read']
+SCOPES = ['[https://www.googleapis.com/auth/fitness.sleep.read](https://www.googleapis.com/auth/fitness.sleep.read)']
 
 def get_fit_credentials():
     creds = None
@@ -66,21 +70,22 @@ def get_fit_credentials():
     return creds
 
 def time_to_rfc3339(dt):
-    return dt.astimezone().isoformat()
+    return dt.astimezone(timezone.utc).isoformat()
 
 def fetch_sleep_json():
     try:
         creds = get_fit_credentials()
         
-        now = datetime.now().astimezone()
-        yesterday_evening = (now - timedelta(days=1)).replace(hour=18, minute=0, second=0, microsecond=0)
+        now = datetime.now(KST)
+        # 최근 2일(48시간) 전부터 넉넉하게 모든 수면 데이터를 조회
+        search_start = (now - timedelta(days=2)).replace(hour=0, minute=0, second=0, microsecond=0)
         
         headers = {"Authorization": f"Bearer {creds.token}"}
         response = requests.get(
-            "https://www.googleapis.com/fitness/v1/users/me/sessions",
+            "[https://www.googleapis.com/fitness/v1/users/me/sessions](https://www.googleapis.com/fitness/v1/users/me/sessions)",
             headers=headers,
             params={
-                "startTime": time_to_rfc3339(yesterday_evening),
+                "startTime": time_to_rfc3339(search_start),
                 "endTime": time_to_rfc3339(now),
                 "activityType": 72  # 72 = 수면(Sleep)
             }
@@ -96,7 +101,7 @@ def fetch_sleep_json():
         if not sessions:
             return None
 
-        # 💡 전체 수면 세션 합산 로직 (분절 수면 완벽 처리)
+        # 💡 전체 수면 세션 합산 로직 (KST 시간대로 완벽 파싱)
         total_minutes = 0
         first_start_ms = int(sessions[0]["startTimeMillis"])
         last_end_ms = int(sessions[-1]["endTimeMillis"])
@@ -108,32 +113,47 @@ def fetch_sleep_json():
             duration = int((s_end - s_start) / (1000 * 60))
             total_minutes += duration
             
+            # UTC -> KST 한국 표준시로 명확히 변환
+            dt_start = datetime.fromtimestamp(s_start / 1000, tz=KST)
+            dt_end = datetime.fromtimestamp(s_end / 1000, tz=KST)
+            
             session_segments.append({
-                "start": datetime.fromtimestamp(s_start / 1000).strftime('%H:%M'),
-                "end": datetime.fromtimestamp(s_end / 1000).strftime('%H:%M'),
+                "start": dt_start.strftime('%p %I:%M'),
+                "end": dt_end.strftime('%p %I:%M'),
                 "minutes": duration
             })
         
         hours = total_minutes // 60
         minutes = total_minutes % 60
         
-        start_dt = datetime.fromtimestamp(first_start_ms / 1000).strftime('%Y-%m-%d %H:%M')
-        end_dt = datetime.fromtimestamp(last_end_ms / 1000).strftime('%Y-%m-%d %H:%M')
+        # 최초 입면 및 최종 기상 시간도 KST 기준으로 포맷팅
+        start_dt = datetime.fromtimestamp(first_start_ms / 1000, tz=KST).strftime('%Y-%m-%d %p %I:%M')
+        end_dt = datetime.fromtimestamp(last_end_ms / 1000, tz=KST).strftime('%Y-%m-%d %p %I:%M')
         
         return {
-            "date": datetime.now().strftime('%Y-%m-%d'),
-            "sleep_start": start_dt,                  # 어젯밤 최초 입면 시간
-            "sleep_end": end_dt,                      # 오늘 아침 최종 기상 시간
+            "date": now.strftime('%Y-%m-%d'),
+            "sleep_start": start_dt,                  # 어젯밤 최초 입면 시간 (KST)
+            "sleep_end": end_dt,                      # 오늘 아침 최종 기상 시간 (KST)
             "total_sleep_minutes": total_minutes,     # 깬 시간 제외한 순수 수면 시간 총합
             "duration_formatted": f"{hours}시간 {minutes}분",
-            "sleep_segment_count": len(sessions),     # 잠이 끊긴 횟수 (1이면 통잠, 2 이상이면 분절 수면)
+            "sleep_segment_count": len(sessions),     # 잠이 끊긴 횟수
             "segments_detail": session_segments       # 수면 조각별 세부 내역
         }
     except Exception as e:
         lg(f"수면 데이터 수집 에러: {e}")
         return None
-        
-# 4. AI 수면 분석 로직 (scraping.py의 fallback 돌려막기 구조 100% 적용)
+
+# 💡 AI 응답에서 ```html ... ``` 껍데기와 불필요한 서론/결론 텍스트를 제거하는 클리닝 함수
+def clean_html_response(text):
+    if not text:
+        return ""
+    # ```html 과 ``` 사이의 실제 HTML 본문만 정규식으로 추출
+    match = re.search(r"```(?:html)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
+
+# 4. AI 수면 분석 로직 (인사말/중복 타이틀 금지 프롬프트 적용)
 def analyze_sleep_with_ai(sleep_data):
     date = sleep_data.get('date')
     sleep_str = json.dumps(sleep_data, ensure_ascii=False, indent=2)
@@ -141,20 +161,18 @@ def analyze_sleep_with_ai(sleep_data):
     prompt = f"""
     당신은 세계 최고 수준의 수면 의학 전문가이자 개인 수면 전담 코치입니다.
     사용자의 갤럭시워치에서 측정되어 Google Fit을 통해 수집된 오늘({date})의 수면 데이터를 분석하고,
-    오늘의 컨디션 예측과 개선 방안을 이메일로 읽기 쉽게 보고서 형식으로 써주세요.
+    오늘의 컨디션 예측과 개선 방안을 HTML 본문으로 작성해 주세요.
 
-    [요청 사항]
-    1. 총 수면 시간 및 입면/기상 시간 분석: 적정 수면 시간과 비교해 어땠는지 알기 쉽게 설명해 주세요.
-    2. 오늘의 컨디션 예측: 오늘의 수면 결과가 낮 시간의 업무 집중도나 체력에 미칠 영향을 예측해 주세요.
-    3. 수면 코칭 액션 아이템: 오늘 밤 더 깊고 질 좋은 수면을 위해 실천할 수 있는 구체적인 행동 1~2가지를 제시해 주세요.
+    [중요: 출력 규칙 - 절대 위반 금지!]
+    1. "안녕하세요", "분석해 드립니다" 같은 인사말이나 서론/결론 텍스트를 절대 쓰지 마세요.
+    2. 보고서 제목(예: "오늘의 수면 분석 리포트")은 이메일 템플릿에 이미 있으므로 본문에 다시 쓰지 마세요.
+    3. 마크다운 코드블록(```html)을 씌우지 말고, 순수하게 HTML 태그(<p>, <h3>, <ul>, <li>, <b> 등)로만 구성된 본문 내용만 출력하세요.
     4. 친근하면서도 전문성 있고 따뜻한 어조로 작성해 주세요.
-    5. HTML 이메일 본문에 바로 들어갈 수 있도록 <p>, <h3>, <ul>, <li>, <b> 태그 등을 적절히 활용해 예쁘게 작성해 주세요.
 
-    [수면 JSON 데이터]
+    [수면 JSON 데이터 (한국 표준시 KST 기준)]
     {sleep_str}
     """
     
-    # 💡 돌려막기(Fallback)할 모델 리스트 (현재 확실히 열려있는 2.0-flash를 1순위로 추가)
     fallback_models = [
         'gemma-4-26b-a4b-it',
         'gemini-2.0-flash',
@@ -174,12 +192,12 @@ def analyze_sleep_with_ai(sleep_data):
                 contents=prompt,
             )
             lg(f"✅ [{model_name}] 수면 분석 성공!")
-            return response.text
+            
+            # 후처리를 통해 깨끗한 순수 HTML 본문만 반환
+            return clean_html_response(response.text)
             
         except Exception as e:
             error_msg = str(e).lower()
-            
-            # API 에러 메시지에 429, Quota, Exhausted, 404, Not Found 등의 단어가 있으면 다음 모델로 자동 넘김!
             if any(k in error_msg for k in ["429", "quota", "exhausted", "404", "not_found", "not found"]):
                 lg(f"⚠️ [{model_name}] 이용 불가 또는 할당량 초과! 2초 대기 후 다음 모델로 교체합니다.")
                 time.sleep(2)
@@ -192,7 +210,7 @@ def analyze_sleep_with_ai(sleep_data):
     lg("🚨 모든 모델의 할당량이 고갈되었거나 사용할 수 있는 모델이 없습니다.")
     return None
 
-# 5. 이메일 발송 로직 (scraping.py의 smtplib.SMTP_SSL 구조 100% 동일)
+# 5. 이메일 발송 로직
 def send_email(subject, html_body):
     try:
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -237,10 +255,11 @@ def main():
     if summary:
         subject = f"🌙 [수면 리포트] {date_str} 분석 결과 및 오늘 컨디션 예측"
         
+        # 중복 제목/인사말 없이 본문만 흰색 카드 컨테이너 안에 쏙 들어가는 깔끔한 디자인
         html_body = f"""
         <div style="font-family: 'Apple SD Gothic Neo', Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-            <h2 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px;">🌙 오늘의 수면 분석 리포트 ({date_str})</h2>
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 15px 0; color: #333333;">
+            <h2 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-top: 0;">🌙 오늘의 수면 분석 리포트 ({date_str})</h2>
+            <div style="background-color: #ffffff; padding: 10px 5px; color: #333333;">
                 {summary}
             </div>
             <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;">
