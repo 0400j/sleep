@@ -49,7 +49,7 @@ def lg(msg):
     print(f"[{now}] ⚡ {msg}")
 
 # 3. Google Fit API 연동 및 수면 데이터 수집 로직
-SCOPES = ['[https://www.googleapis.com/auth/fitness.sleep.read](https://www.googleapis.com/auth/fitness.sleep.read)']
+SCOPES = ['https://www.googleapis.com/auth/fitness.sleep.read']
 
 def get_fit_credentials():
     creds = None
@@ -82,7 +82,7 @@ def fetch_sleep_json():
         
         headers = {"Authorization": f"Bearer {creds.token}"}
         response = requests.get(
-            "[https://www.googleapis.com/fitness/v1/users/me/sessions](https://www.googleapis.com/fitness/v1/users/me/sessions)",
+            "https://www.googleapis.com/fitness/v1/users/me/sessions",
             headers=headers,
             params={
                 "startTime": time_to_rfc3339(search_start),
