@@ -96,9 +96,14 @@ def fetch_sleep_json():
             return None
             
         data = response.json()
-        sessions = data.get("session", [])
         
-        # 💡 [여기서부터 추가!] 48시간 데이터 중 '최근 24시간 이내' 데이터만 필터링
+        # 💡 여기가 수정된 부분입니다! 가져온 데이터를 일단 'raw_sessions'에 담습니다.
+        raw_sessions = data.get("session", [])
+        
+        if not raw_sessions:
+            return None
+
+        # 💡 48시간 데이터 중 '최근 24시간 이내' 데이터만 필터링
         cutoff_time = now - timedelta(hours=24)
         sessions = []
         for s in raw_sessions:
@@ -106,7 +111,8 @@ def fetch_sleep_json():
             # 수면 종료 시간이 최근 24시간 이내인 것만 '진짜 오늘 수면'으로 인정
             if s_end > cutoff_time:
                 sessions.append(s)
-                
+
+        # 필터링 후 오늘 수면이 없다면 종료
         if not sessions:
             return None
 
