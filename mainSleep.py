@@ -147,29 +147,73 @@ def analyze_sleep_with_ai(sleep_data):
     sleep_str = json.dumps(sleep_data, ensure_ascii=False, indent=2)
     
     prompt = f"""
-당신은 세계 최고 수준의 수면 분석가이자 생체역학, 열역학 전문가입니다.
-클라이언트는 아래와 같은 명확한 신체적, 성향적 특성을 가집니다. 분석 시 이 데이터를 반드시 인과관계의 근거로 사용하십시오.
+    당신은 최고 효율과 리소스 관리를 중시하는 INTJ 성향의 사용자를 위한 '수면 리소스 전담 수석 분석관'이자 생체역학/열역학 전문가입니다.
+    사용자의 신체 조건과 업무 환경을 기본 프로필로 반영하여 분석하십시오.
 
-[클라이언트 고정 프로필]
-1. 하드웨어: 키 190cm, 체중 85kg, 골격근량 39.3kg (체지방 15.6%)/
-2. 체질: 소양인 (상체로 열이 쏠리기 쉽고 방열이 수면의 핵심 변수임).
-3. 성향: INTJ. 합리성, 논리, 시간 가성비를 최우선으로 함.
+    [클라이언트 고정 프로필]
+    1. 하드웨어: 키 190cm, 체중 85kg, 골격근량 39.3kg (체지방 15.6%)
+    2. 체질: 소양인 (상체로 열이 쏠리기 쉽고 방열이 수면의 핵심 변수임)
+    3. 성향: INTJ (합리성, 논리, 시간 가성비를 최우선으로 함)
+    4. 환경: 도슨트/설명 업무 등으로 인한 목·성대 피로 및 지적 연산
 
-[출력(분석) 절대 규칙]
-1. 감정적인 위로나 미사여구를 절대 금지합니다.
-2. 분석은 철저히 제공된 JSON 수치 데이터와 클라이언트의 '신체적 특성'을 결합한 생물학적/물리학적 인과관계로만 설명하십시오.
-4. 문체는 냉철하고 단호하며, 데이터 기반의 논리적 추론 형태로 작성하십시오.
-5. "안녕하세요", "분석해 드립니다" 같은 인사말이나 서론/결론 텍스트, 보고서 제목을 절대 쓰지 마세요.
-6. 마크다운(##, **, ``` 등)을 절대 사용하지 말고, 순수하게 HTML 태그(<p>, <h3>, <ul>, <li>, <b> 등)로만 구성된 본문 내용만 출력하세요.
+    [작성 양식 - 반드시 아래 HTML 구조와 톤앤매너를 엄격히 준수할 것]
+    
+    <div style="margin-bottom: 25px;">
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">1. 수면 지표 핵심 요약</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px;">
+            <thead>
+                <tr style="background-color: #f1f3f4; color: #202124;">
+                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">지표 항목</th>
+                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">측정 값</th>
+                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">평가 및 리소스 상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 실측 수면 시간, 수면 지속 구조/패턴, 입면/기상 시간, 종합 평가 행을 작성 -->
+            </tbody>
+        </table>
+    </div>
 
-[필수 출력 포맷 (HTML 태그 사용)]
-반드시 다음 3가지 섹션으로 나누어 작성하십시오.
-<h3 style="color: #1a73e8;">1. 수면 지표 핵심 요약</h3> (데이터 객관적 평가)
-<h3 style="color: #1a73e8;">2. 심층 데이터 분석 및 인과관계</h3> (생물학적 심층 분석)
-<h3 style="color: #1a73e8;">3. 리소스 최적화 및 행동 지침</h3> (명확한 Action Plan 2~3가지)
+    <div style="margin-bottom: 25px;">
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">2. 데이터 심층 해석 및 인과관계</h3>
+        <div style="background-color: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px 15px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #1a73e8;">① [핵심 지표/회복 밸런스 분석 제목]</p>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #3c4043;">
+                - <b>신체 회복:</b> 190cm, 85kg 프레임의 대사 회복과 피로 상쇄 수준 분석.<br>
+                - <b>인지/뇌 회복:</b> 렘 수면 및 수면 지속성이 오늘 발휘할 인지 리소스·집중력에 미치는 영향 분석.
+            </p>
+        </div>
+        <div style="background-color: #f8f9fa; border-left: 4px solid #ea4335; padding: 12px 15px; border-radius: 0 6px 6px 0;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #ea4335;">② [유실된 리소스 / 병목 구간 분석 제목]</p>
+            <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #3c4043;">
+                - 수면 분절, 입면 지연, 또는 체온 방열 실패 등 구체적 원인과 이로 인한 기회비용 손실 분석.
+            </p>
+        </div>
+    </div>
 
-[오늘({date})의 수면 JSON 데이터 (한국 표준시 KST 기준)]
-{sleep_str}
+    <div style="margin-bottom: 10px;">
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">3. 리소스 최적화 솔루션 (Action Protocol)</h3>
+        <div style="background-color: #e8f0fe; border: 1px solid #d2e3fc; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; line-height: 1.6;">
+            <p style="margin: 0 0 4px 0; font-weight: bold; color: #174ea6;">[Action 1] (예: 방열 통제 / 입면 시간 단축 등 핵심 액션 명칭)</p>
+            <p style="margin: 0; color: #3c4043;"><b>방법:</b> 실행할 구체적 수치와 통제 지침</p>
+            <p style="margin: 0; color: #3c4043;"><b>이유:</b> 리소스 가성비 회수를 위한 논리적 근거</p>
+        </div>
+        <div style="background-color: #e8f0fe; border: 1px solid #d2e3fc; padding: 12px 15px; border-radius: 6px; font-size: 13px; line-height: 1.6;">
+            <p style="margin: 0 0 4px 0; font-weight: bold; color: #174ea6;">[Action 2] (예: 수면 자산 확보 / 뇌 셧다운 규칙 등)</p>
+            <p style="margin: 0; color: #3c4043;"><b>방법:</b> 실행할 구체적 수치와 통제 지침</p>
+            <p style="margin: 0; color: #3c4043;"><b>이유:</b> 내일의 출력 유지를 위한 논리적 근거</p>
+        </div>
+    </div>
+
+    [출력 절대 규칙]
+    1. 감정적인 위로나 미사여구를 절대 금지합니다.
+    2. 문체는 냉철하고 단호하며, 데이터 기반의 논리적 추론 형태로 작성하십시오.
+    3. 서론/결론 인사말("안녕하세요", "작성해 드립니다" 등)을 절대 쓰지 마십시오.
+    4. 최상단 대제목(예: "수면 분석 리포트")은 템플릿에 있으므로 본문에 중복 작성하지 마십시오.
+    5. 마크다운(```html ... ```, ##, ** 등) 태그 없이 오직 위의 HTML 조각 코드만 순수하게 출력하십시오.
+
+    [오늘({date})의 수면 JSON 데이터 (한국 표준시 KST 기준)]
+    {sleep_str}
     """
     
     fallback_models = [
@@ -249,15 +293,21 @@ def main():
     if summary:
         subject = f"🌙 [수면 리포트] {date_str} 분석 결과 및 리소스 최적화 지침"
         
+        # 가독성을 극대화한 새로운 이메일 래퍼
         html_body = f"""
-        <div style="font-family: 'Apple SD Gothic Neo', Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-            <h2 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-top: 0;">🌙 심층 수면 분석 리포트 ({date_str})</h2>
-            <div style="background-color: #ffffff; padding: 10px 5px; color: #333333;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', Pretendard, Roboto, sans-serif; line-height: 1.5; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #dadce0; border-radius: 12px; background-color: #ffffff;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1a73e8; padding-bottom: 12px; margin-bottom: 20px;">
+                <h2 style="color: #1a73e8; margin: 0; font-size: 20px;">🌙 고효율 수면 리소스 분석 리포트</h2>
+                <span style="font-size: 13px; color: #5f6368; font-weight: bold;">{date_str}</span>
+            </div>
+            
+            <div style="color: #202124;">
                 {summary}
             </div>
-            <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #888888; text-align: center;">
-                Galaxy Watch 8 × Gemini AI Automated Sleep Coach
+            
+            <hr style="border: none; border-top: 1px solid #f1f3f4; margin: 25px 0 15px 0;">
+            <p style="font-size: 11px; color: #80868b; text-align: center; margin: 0;">
+                Galaxy Watch 8 × Gemini AI | INTJ Resource Optimization Protocol
             </p>
         </div>
         """
