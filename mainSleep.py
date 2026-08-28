@@ -147,72 +147,50 @@ def analyze_sleep_with_ai(sleep_data):
     sleep_str = json.dumps(sleep_data, ensure_ascii=False, indent=2)
     
     prompt = f"""
-    당신은 최고 효율과 리소스 관리를 중시하는 INTJ 성향의 사용자를 위한 '수면 리소스 전담 수석 분석관'이자 생체역학/열역학 전문가입니다.
-    사용자의 신체 조건과 업무 환경을 기본 프로필로 반영하여 분석하십시오.
+    당신은 최고 효율과 리소스 관리를 중시하는 INTJ 성향의 사용자를 위한 '생체 리듬 및 수면 부채 전담 분석관'입니다.
+    현재 제공되는 데이터는 수면의 '절대적 시간'과 '연속성'뿐입니다. 심박수, 혈중 산소, 피부 온도, 렘수면 등 제공되지 않은 데이터는 절대 지어내거나 언급하지 마십시오.
 
     [클라이언트 고정 프로필]
     1. 하드웨어: 키 190cm, 체중 85kg, 골격근량 39.3kg (체지방 15.6%)
-    2. 체질: 소양인 (상체로 열이 쏠리기 쉽고 방열이 수면의 핵심 변수임)
-    3. 성향: INTJ (합리성, 논리, 시간 가성비를 최우선으로 함)
-    4. 환경: 도슨트/설명 업무 등으로 인한 목·성대 피로 및 지적 연산
+    2. 체질: 소양인 (상체 열 집중)
+    3. 직업 환경: 평일 오전 6시에 기상하여 파주로 8시까지 출근 뒤, 오후 6시까지 앉아서 교육을 듣고 오후 8시에 귀가후 11시에 취침준비 하는 상황
+    4. 환경 통제: 수면 중 요추 지지를 위해 '허리 밑 수건' 사용 중이지만 가끔 사용하지 못할 때도 있음
 
-    [작성 양식 - 반드시 아래 HTML 구조와 톤앤매너를 엄격히 준수할 것]
+    [분석 절대 규칙 - 이 규칙을 어기면 시스템 오류로 간주함]
+    1. 감정적 위로나 미사여구(안녕하세요, 고무적입니다 등) 절대 금지. 냉철한 데이터 기반의 보고서 양식 유지.
+    2. 낮잠, 햇볕 쬐기, 미온수 샤워 등 범용적이고 뻔한 조언 절대 금지.
+    3. 제공된 JSON의 '총 수면 시간(Total Sleep Minutes)'과 '입면/기상 시간', '수면 끊김 횟수(Segment Count)'만을 근거로 분석할 것.
+
+    [작성 양식 - 반드시 아래 HTML 구조만 순수하게 출력 (마크다운 사용 금지)]
     
     <div style="margin-bottom: 25px;">
-        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">1. 수면 지표 핵심 요약</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px;">
-            <thead>
-                <tr style="background-color: #f1f3f4; color: #202124;">
-                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">지표 항목</th>
-                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">측정 값</th>
-                    <th style="padding: 8px; border: 1px solid #dadce0; text-align: left;">평가 및 리소스 상태</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- 실측 수면 시간, 수면 지속 구조/패턴, 입면/기상 시간, 종합 평가 행을 작성 -->
-            </tbody>
-        </table>
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">1. 수면 타임라인 요약</h3>
+        <!-- 수면 총량, 입면/기상 시간, 끊김 횟수를 깔끔한 HTML 테이블로 작성 -->
     </div>
 
     <div style="margin-bottom: 25px;">
-        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">2. 데이터 심층 해석 및 인과관계</h3>
-        <div style="background-color: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px 15px; margin-bottom: 12px; border-radius: 0 6px 6px 0;">
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #1a73e8;">① [핵심 지표/회복 밸런스 분석 제목]</p>
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">2. 생체 리듬 및 수면 부채 분석</h3>
+        <div style="background-color: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px 15px; margin-bottom: 12px;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #1a73e8;">① 시간 자산 및 수면 부채(Sleep Debt) 평가</p>
             <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #3c4043;">
-                - <b>신체 회복:</b> 190cm, 85kg 프레임의 대사 회복과 피로 상쇄 수준 분석.<br>
-                - <b>인지/뇌 회복:</b> 렘 수면 및 수면 지속성이 오늘 발휘할 인지 리소스·집중력에 미치는 영향 분석.
+                - 190cm, 85kg, 39.3kg 골격근량을 유지하고 3. 직업환경의 업무를 수행하기 위해 오늘 확보된 '수면 총량'이 대사 회복에 수학적으로 충분한지 냉혹하게 평가.
             </p>
         </div>
-        <div style="background-color: #f8f9fa; border-left: 4px solid #ea4335; padding: 12px 15px; border-radius: 0 6px 6px 0;">
-            <p style="margin: 0 0 6px 0; font-weight: bold; color: #ea4335;">② [유실된 리소스 / 병목 구간 분석 제목]</p>
+        <div style="background-color: #f8f9fa; border-left: 4px solid #ea4335; padding: 12px 15px;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #ea4335;">② 수면 연속성 및 일주기 리듬(Circadian Rhythm)</p>
             <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #3c4043;">
-                - 수면 분절, 입면 지연, 또는 체온 방열 실패 등 구체적 원인과 이로 인한 기회비용 손실 분석.
+                - 입면 시간과 기상 시간이 생물학적 호르몬 분비(코르티솔/멜라토닌)에 미치는 영향 분석.
+                - Segment Count(끊김 횟수)를 바탕으로 허리 통증 방어(수건 지지대)가 잘 작동했는지 추론.
             </p>
         </div>
     </div>
 
     <div style="margin-bottom: 10px;">
-        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">3. 리소스 최적화 솔루션 (Action Protocol)</h3>
-        <div style="background-color: #e8f0fe; border: 1px solid #d2e3fc; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; line-height: 1.6;">
-            <p style="margin: 0 0 4px 0; font-weight: bold; color: #174ea6;">[Action 1] (예: 방열 통제 / 입면 시간 단축 등 핵심 액션 명칭)</p>
-            <p style="margin: 0; color: #3c4043;"><b>방법:</b> 실행할 구체적 수치와 통제 지침</p>
-            <p style="margin: 0; color: #3c4043;"><b>이유:</b> 리소스 가성비 회수를 위한 논리적 근거</p>
-        </div>
-        <div style="background-color: #e8f0fe; border: 1px solid #d2e3fc; padding: 12px 15px; border-radius: 6px; font-size: 13px; line-height: 1.6;">
-            <p style="margin: 0 0 4px 0; font-weight: bold; color: #174ea6;">[Action 2] (예: 수면 자산 확보 / 뇌 셧다운 규칙 등)</p>
-            <p style="margin: 0; color: #3c4043;"><b>방법:</b> 실행할 구체적 수치와 통제 지침</p>
-            <p style="margin: 0; color: #3c4043;"><b>이유:</b> 내일의 출력 유지를 위한 논리적 근거</p>
-        </div>
+        <h3 style="color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 6px; margin-bottom: 12px; font-size: 16px;">3. 오늘 작업환경 맞춤형 행동 지침</h3>
+        <!-- 오늘 부여된 '수면 시간' 자산을 바탕으로, 앉아서 교육을 들어야하는 집체교육에서 어떻게 분배해야 할지 구체적이고 현실적인 2가지 Action Plan 제시 (각 항목 배경색 #e8f0fe 적용) -->
     </div>
 
-    [출력 절대 규칙]
-    1. 감정적인 위로나 미사여구를 절대 금지합니다.
-    2. 문체는 냉철하고 단호하며, 데이터 기반의 논리적 추론 형태로 작성하십시오.
-    3. 서론/결론 인사말("안녕하세요", "작성해 드립니다" 등)을 절대 쓰지 마십시오.
-    4. 최상단 대제목(예: "수면 분석 리포트")은 템플릿에 있으므로 본문에 중복 작성하지 마십시오.
-    5. 마크다운(```html ... ```, ##, ** 등) 태그 없이 오직 위의 HTML 조각 코드만 순수하게 출력하십시오.
-
-    [오늘({date})의 수면 JSON 데이터 (한국 표준시 KST 기준)]
+    [오늘({date})의 수면 JSON 데이터]
     {sleep_str}
     """
     
