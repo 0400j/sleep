@@ -1,4 +1,4 @@
-name: Automated Sleep Report Pipeline
+name: Automated Sleep Report Pipeline 
 
 on:
   schedule:
